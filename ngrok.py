@@ -1,40 +1,49 @@
-import requests
+import aiohttp
+import asyncio
 import json
 
 
-def create_tunnel(name, port):
+class NgrokError(Exception):
+    pass
+
+
+async def create_tunnel(name, port, loop=None):
     print("Creating ngrok tunnel {}".format(name))
     data_to_post = json.dumps({"addr": "8080", "proto": "http", "name": name})
-    try:
-        req = requests.post(
-            "http://127.0.0.1:4040/api/tunnels",
-            data=data_to_post,
-            verify=False,
-            headers={"Content-Type": "application/json"}).json()
-        return req["public_url"]
-    except Exception as exc:
-        print(exc)
-        return None
+    if not loop:
+        loop = asyncio.get_event_loop()
+    async with aiohttp.ClientSession(
+            loop=loop,
+            headers={"Content-Type": "application/json"}) as client:
+        async with client.post(
+                url="http://127.0.0.1:4040/api/tunnels",
+                data=data_to_post) as resp:
+            result = await resp.json()
+            if resp.status == 201:
+                return result["public_url"]
+            else:
+                raise NgrokError(result)
 
-def delete_tunnel(name):
+
+async def delete_tunnel(name, loop=None):
     print("Deleting ngrok tunnel {}".format(name))
-    try:
-        req = requests.delete("http://127.0.0.1:4040/api/tunnels/{}".format(name))
-        if req.status_code == 204:
-            return True
-        else:
-            print("Got code: {}".format(req.status_code))
-    except Exception as exc:
-        print(exc)
-    return False
+    if not loop:
+        loop = asyncio.get_event_loop()
+    async with aiohttp.ClientSession(
+            loop=loop,
+            headers={"Content-Type": "application/json"}) as client:
+        async with client.delete("http://127.0.0.1:4040/api/tunnels/{}".format(name)) as resp:
+            return resp.status == 204
 
 
 if __name__ == '__main__':
-    url = create_tunnel("test", 8080)
-    if url:
-        print("Tunnel created at {}".format(url))
-        result = delete_tunnel("test")
-        if not result:
-            print("Failed to delete tunnel")
-    else:
-        print("Failed to create tunnel")
+    async def main(loop):
+        url = await create_tunnel("test", 8080, loop=loop)
+        if url:
+            print("Tunnel created at {}".format(url))
+            result = await delete_tunnel("test")
+            if not result:
+                print("Failed to delete tunnel")
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main(loop))

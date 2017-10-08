@@ -1,5 +1,5 @@
 from aiohttp import web
-import requests
+import asyncio
 import json
 import ngrok
 import webhook
@@ -15,20 +15,24 @@ async def handle(request):
     return web.Response(text=str(data))
 
 
-def main(public_url):
-    print(public_url)
+def start_server(loop):
     app = web.Application()
     app.router.add_post('/', handle)
     app.router.add_post('/{name}', handle)
-    web.run_app(app)
+    web.run_app(app, loop=loop)
 
 
 if __name__ == '__main__':
-    access_token = open("access_token.txt").read().strip()
-    webhooks = webhook.Webhooks(access_token)
-    port = 8080
-    url = ngrok.create_tunnel("sysdig_bot", 8080)
-    the_webhook = webhooks.create("incoming", url, "messages", "created")
-    main(url)
-    the_webhook.delete()
-    ngrok.delete_tunnel("sysdig_bot")
+    async def main(loop):
+        access_token = open("access_token.txt").read().strip()
+        webhooks = webhook.Webhooks(access_token, loop=loop)
+        port = 8080
+        url = await ngrok.create_tunnel("sysdig_bot", 8080, loop=loop)
+        the_webhook = await webhooks.create("incoming", url, "messages", "created")
+        return the_webhook
+
+    loop = asyncio.get_event_loop()
+    the_webhook = loop.run_until_complete(main(loop))
+
+    start_server(loop)
+    loop.run_until_complete(asyncio.gather(the_webhook.delete(), ngrok.delete_tunnel("sysdig_bot")))
