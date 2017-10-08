@@ -25,9 +25,10 @@ def main(public_url):
 
 if __name__ == '__main__':
     access_token = open("access_token.txt").read().strip()
+    webhooks = webhook.Webhooks(access_token)
     port = 8080
     url = ngrok.create_tunnel("sysdig_bot", 8080)
-    webhook_id = webhook.create("incoming", url, "messages", "created", access_token)
+    the_webhook = webhooks.create("incoming", url, "messages", "created")
     main(url)
-    webhook.delete(webhook_id, access_token)
+    the_webhook.delete()
     ngrok.delete_tunnel("sysdig_bot")

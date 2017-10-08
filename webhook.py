@@ -2,62 +2,99 @@ import json
 import requests
 
 
-WEBHOOK_URL = "https://api.ciscospark.com/v1/webhooks"
+def _headers(access_token):
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {}".format(access_token)}
+    return headers
 
 
-def create(name, url, resource, event, access_token):
-    data_to_post = json.dumps({"name": name, "targetUrl": url, "resource": resource, "event": event})
-    headers = {"Content-Type": "application/json", "Authorization": "Bearer {}".format(access_token)}
-    try:
-        print("Creating spark webhook {} to point to {}".format(name, url))
-        req = requests.post(WEBHOOK_URL, headers=headers, data=data_to_post).json()
-        print(req)
-        return req["id"]
-    except Exception as exc:
-        print(exc)
-    return None
+class Webhook:
+    def __init__(self, access_token, webhook_url, name, url, resource, event):
+        self._access_token = access_token
+        self.webhook_url = webhook_url
+        self.name = name
+        self.url = url
+        self.resource = resource
+        self.event = event
+
+    def __str__(self):
+        return "{} mapping {}:{} to {}".format(self.name, self.resource, self.event, self.url)
+
+    def __repr__(self):
+        return "<Webhook {}:{} for {}:{}>".format(self.name, self.url, self.resource, self.event)
+
+    def delete(self):
+        try:
+            print("Deleting spark webhook {}".format(self.webhook_url))
+            req = requests.delete(
+                self.webhook_url, headers=_headers(self._access_token))
+            if req.status_code == 204:
+                return True
+            else:
+                print(req)
+        except Exception as exc:
+            print(exc)
+        return False
 
 
-def delete(id, access_token):
-    headers = {"Content-Type": "application/json", "Authorization": "Bearer {}".format(access_token)}
-    try:
-        print("Deleting spark webhook {}".format(id))
-        req = requests.delete(WEBHOOK_URL + "/{}".format(id), headers=headers)
-        if req.status_code == 204:
-            return True
-        else:
-            print(req)
-    except Exception as exc:
-        print(exc)
-    return False
+class Webhooks:
+    WEBHOOK_URL = "https://api.ciscospark.com/v1/webhooks"
 
+    def __init__(self, access_token):
+        self._access_token = access_token
 
-def list(access_token):
-    headers = {"Content-Type": "application/json", "Authorization": "Bearer {}".format(access_token)}
-    try:
-        print("Listing spark webhooks")
-        req = requests.get(WEBHOOK_URL, headers=headers)
-        if req.status_code == 200:
-            return req.json()
-        else:
-            print(req)
-    except Exception as exc:
-        print(exc)
-    return None
+    def create(self, name, url, resource, event):
+        data_to_post = json.dumps({
+            "name": name,
+            "targetUrl": url,
+            "resource": resource,
+            "event": event})
+        headers = _headers(self._access_token)
+        try:
+            print("Creating spark webhook {} to point to {}".format(name, url))
+            req = requests.post(self.WEBHOOK_URL, headers=headers, data=data_to_post).json()
+            return Webhook(
+                self._access_token,
+                self.WEBHOOK_URL + "/{}".format(req["id"]), name, url, resource, event)
+        except Exception as exc:
+            print(exc)
+        return None
+
+    def list(self):
+        try:
+            webhooks = []
+            print("Listing spark webhooks")
+            req = requests.get(self.WEBHOOK_URL, headers=_headers(self._access_token))
+            if req.status_code == 200:
+                for webhook in req.json().get("items", []):
+                    webhooks.append(Webhook(
+                        self._access_token,
+                        "{}/{}".format(self.WEBHOOK_URL, webhook["id"]),
+                        webhook["name"],
+                        webhook["targetUrl"],
+                        webhook["resource"],
+                        webhook["event"]
+                    ))
+                return webhooks
+            else:
+                print(req)
+        except Exception as exc:
+            print(exc)
+        return None
 
 
 if __name__ == '__main__':
     access_token = open("access_token.txt").read().strip()
-    webhook_id = create("test", "http://127.0.0.1", "messages", "created", access_token)
-    if webhook_id:
-        print("Created webhook with id {}".format(webhook_id))
-        if not delete(webhook_id, access_token):
-            print("Failed to delete webhook {}".format(webhook_id))
-        else:
-            webhooks = list(access_token)
-            if webhooks:
-                for item in webhooks.get("items", []):
-                    if not delete(item["id"], access_token):
-                        print("Failed to delete webhook {}".format(item["id"]))
+    webhooks = Webhooks(access_token)
+    webhook = webhooks.create("test", "http://127.0.0.1", "messages", "created")
+    if webhook:
+        print("Created webhook {}".format(webhook))
+        all_webhooks = webhooks.list()
+        print(all_webhooks)
+        if all_webhooks:
+            for item in all_webhooks:
+                if not item.delete():
+                    print("Failed to delete webhook {}".format(item))
     else:
         print("Failed to create webhook")
