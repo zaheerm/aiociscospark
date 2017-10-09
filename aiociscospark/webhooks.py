@@ -1,9 +1,9 @@
 import aiohttp
 import asyncio
 import json
-from common import CiscoSparkAPIError
-from common import headers as _headers
-from common import CiscoSparkObject
+from .common import CiscoSparkAPIError
+from .common import headers as _headers
+from .common import CiscoSparkObject
 
 
 class Webhook(CiscoSparkObject):

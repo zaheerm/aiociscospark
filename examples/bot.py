@@ -2,8 +2,8 @@ from aiohttp import web
 import asyncio
 import json
 import ngrok
-import webhooks
-import people
+from aiociscospark import webhooks
+from aiociscospark import people
 
 
 class Bot:
