@@ -25,9 +25,9 @@ Usage
     TOKEN = 'xxxxx'
 
     async def main():
-        async with people.People(TOKEN) as spark:
-            me = await spark.me()
-            print(me)
+        spark = people.People(TOKEN)
+        me = await spark.me()
+        print(me)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
