@@ -1,31 +1,19 @@
 import aiohttp
 import asyncio
 import json
+from common import CiscoSparkAPIError
+from common import headers as _headers
+from common import CiscoSparkObject
 
 
-class CiscoSparkAPIError(Exception):
-    pass
-
-
-def _headers(access_token):
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer {}".format(access_token)}
-    return headers
-
-
-class Webhook:
+class Webhook(CiscoSparkObject):
     def __init__(self, access_token, webhook_url, name, url, resource, event, loop=None):
-        self._access_token = access_token
+        super().__init__(access_token, loop=loop)
         self.webhook_url = webhook_url
         self.name = name
         self.url = url
         self.resource = resource
         self.event = event
-        if loop:
-            self._loop = loop
-        else:
-            self._loop = asyncio.get_event_loop()
 
     def __str__(self):
         return "{} mapping {}:{} to {}".format(self.name, self.resource, self.event, self.url)
@@ -42,15 +30,8 @@ class Webhook:
                 return resp.status == 204
 
 
-class Webhooks:
+class Webhooks(CiscoSparkObject):
     WEBHOOK_URL = "https://api.ciscospark.com/v1/webhooks"
-
-    def __init__(self, access_token, loop=None):
-        self._access_token = access_token
-        if loop:
-            self._loop = loop
-        else:
-            self._loop = asyncio.get_event_loop()
 
     async def create(self, name, url, resource, event):
         data_to_post = json.dumps({
