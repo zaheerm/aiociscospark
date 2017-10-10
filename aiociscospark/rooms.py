@@ -32,6 +32,14 @@ class Room(CiscoSparkObject):
             async with client.delete(self.room_url) as resp:
                 return resp.status == 204
 
+    async def update(self):
+        data_to_post = json.dumps({"title": self.title})
+        async with aiohttp.ClientSession(
+                loop=self._loop,
+                headers=_headers(self._access_token)) as client:
+            async with client.put(self.room_url, data=data_to_post) as resp:
+                return resp.status == 200
+
 
 class Rooms(CiscoSparkObject):
     ROOM_URL = "https://api.ciscospark.com/v1/rooms"

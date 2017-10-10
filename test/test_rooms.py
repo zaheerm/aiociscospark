@@ -14,4 +14,8 @@ async def test_create_list_delete():
     all_rooms = await rooms_api.list()
     assert len(all_rooms) >= 1
     assert len([room for room in all_rooms if room.title == "test"]) >= 1
+    room.title = "test 2"
+    await room.update()
+    all_rooms = await rooms_api.list()
+    assert len([room for room in all_rooms if room.title == "test 2"]) >= 1
     _ = await room.delete()
