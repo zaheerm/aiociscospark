@@ -19,6 +19,12 @@ class Person(CiscoSparkObject):
     def __repr__(self):
         return "<Person {}:{}>".format(self.person_id, self.display_name)
 
+    def __eq__(self, other):
+        return (
+            self.person_id == other.person_id and
+            self.person_url == other.person_url and
+            self.display_name == other.display_name)
+
     async def delete(self):
         print("Deleting spark person {}".format(self.person_id))
         async with aiohttp.ClientSession(
@@ -44,8 +50,7 @@ class People(CiscoSparkObject):
         async with aiohttp.ClientSession(
                 loop=self._loop,
                 headers=_headers(self._access_token)) as client:
-            print("Getting spark person {}".format(person_id))
-            async with client.get(url="{}/{}".format(self.PEOPLE_URL, person_url)) as resp:
+            async with client.get(url="{}/{}".format(self.PEOPLE_URL, person_id)) as resp:
                 result = await resp.json()
                 if resp.status == 200:
                     return self._person_from_result(result)
@@ -56,7 +61,6 @@ class People(CiscoSparkObject):
         async with aiohttp.ClientSession(
                 loop=self._loop,
                 headers=_headers(self._access_token)) as client:
-            print("Getting my spark person")
             async with client.get(url="{}/me".format(self.PEOPLE_URL)) as resp:
                 result = await resp.json()
                 if resp.status == 200:
