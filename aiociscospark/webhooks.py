@@ -79,24 +79,3 @@ class Webhooks(CiscoSparkObject):
                     return webhooks
                 else:
                     raise CiscoSparkAPIError(result)
-
-
-if __name__ == '__main__':
-    async def main(loop):
-        access_token = open("access_token.txt").read().strip()
-        webhooks = Webhooks(access_token, loop=loop)
-        webhook = await webhooks.create("test", "http://127.0.0.1", "messages", "created")
-        if webhook:
-            print("Created webhook {}".format(webhook))
-            all_webhooks = await webhooks.list()
-            print(all_webhooks)
-            if all_webhooks:
-                for item in all_webhooks:
-                    result = await item.delete()
-                    if not result:
-                        print("Failed to delete webhook {}".format(item))
-        else:
-            print("Failed to create webhook")
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main(loop))
