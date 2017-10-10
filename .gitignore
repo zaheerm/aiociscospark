@@ -1,3 +1,5 @@
 __pycache__/
+.cache/
+*egg-info
 *.pyc
 access_token.txt
