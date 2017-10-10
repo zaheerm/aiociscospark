@@ -5,6 +5,8 @@ aiociscospark
 
 .. image:: https://img.shields.io/travis/zaheerm/aiociscospark.svg
     :target: https://travis-ci.org/zaheerm/aiociscospark
+.. image:: https://img.shields.io/coveralls/zaheerm/aiociscospark.svg
+    :target: https://coveralls.io/github/zaheerm/aiociscospark
 
 Installation
 ------------
