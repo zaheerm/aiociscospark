@@ -3,7 +3,7 @@ aiociscospark
 
 :info: Asyncio based sdk for Cisco Spark
 
-.. image:: https://img.shields.io/travis/zaheerm/aioslacker.svg
+.. image:: https://img.shields.io/travis/zaheerm/aiociscospark.svg
     :target: https://travis-ci.org/zaheerm/aiociscospark
 
 Installation

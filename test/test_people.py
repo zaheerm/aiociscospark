@@ -4,6 +4,7 @@ import os
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_create_get_me():
     access_token = os.environ.get("TOKEN")
