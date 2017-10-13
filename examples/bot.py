@@ -4,12 +4,14 @@ import json
 import ngrok
 from aiociscospark import webhooks
 from aiociscospark import people
+from aiociscospark import messages
 
 
 class Bot:
     def __init__(self, access_token, loop):
         self.me = None
         self.people = people.People(access_token, loop=loop)
+        self.messages = messages.Messages(access_token, loop=loop)
 
     async def whoami(self):
         if not self.me:
@@ -18,14 +20,18 @@ class Bot:
 
     async def message_created(self, request):
         data = await request.json()
-        print("Got data {}".format(data))
         room_id = data["data"]["roomId"]
         message_id = data["data"]["id"]
         person_id = data["data"]["personId"]
         me = await self.whoami()
-        print("{} sent me a message".format(data["data"]["personEmail"]))
         if me.person_id == person_id:
-            print("I sent myself a message so not replying!")
+            print("I sent that message so not replying!")
+        else:
+            message = await self.messages.get(data["data"]["id"])
+            print("{} sent: {}".format(message.person_email, message.text))
+            sent_message = await self.messages.send_to_person(
+                person_id=person_id, message_text="Thanks I got that")
+            print(sent_message)
         return web.Response(text=str(data))
 
 
