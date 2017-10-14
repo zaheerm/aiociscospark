@@ -29,8 +29,16 @@ class Bot:
         else:
             message = await self.messages.get(data["data"]["id"])
             print("{} sent: {}".format(message.person_email, message.text))
-            sent_message = await self.messages.send_to_person(
-                person_id=person_id, message_text="Thanks I got that")
+            if message.room_type == "direct":
+                sent_message = await self.messages.send_to_person(
+                    person_id=person_id, message_text="Thanks I got that")
+            else:
+                person = await self.people.get(person_id)
+                sent_message = await self.messages.send_to_room(
+                    room_id=message.room_id,
+                    message_markdown="<@personId:{}|{}>, thanks I got that".format(
+                        person_id, person.display_name)
+                )
             print(sent_message)
         return web.Response(text=str(data))
 
