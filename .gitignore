@@ -3,3 +3,4 @@ __pycache__/
 *egg-info
 *.pyc
 access_token.txt
+.coverage
