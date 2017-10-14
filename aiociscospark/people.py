@@ -26,7 +26,6 @@ class Person(CiscoSparkObject):
             self.display_name == other.display_name)
 
     async def delete(self):
-        print("Deleting spark person {}".format(self.person_id))
         async with aiohttp.ClientSession(
                 loop=self._loop,
                 headers=_headers(self._access_token)) as client:

@@ -22,7 +22,6 @@ class Webhook(CiscoSparkObject):
         return "<Webhook {}:{} for {}:{}>".format(self.name, self.url, self.resource, self.event)
 
     async def delete(self):
-        print("Deleting spark webhook {}".format(self.webhook_url))
         async with aiohttp.ClientSession(
                 loop=self._loop,
                 headers=_headers(self._access_token)) as client:
@@ -42,7 +41,6 @@ class Webhooks(CiscoSparkObject):
         async with aiohttp.ClientSession(
                 loop=self._loop,
                 headers=_headers(self._access_token)) as client:
-            print("Creating spark webhook {} to point to {}".format(name, url))
             async with client.post(url=self.WEBHOOK_URL, data=data_to_post) as resp:
                 result = await resp.json()
                 if resp.status == 200:
@@ -62,7 +60,6 @@ class Webhooks(CiscoSparkObject):
         async with aiohttp.ClientSession(
                 loop=self._loop,
                 headers=_headers(self._access_token)) as client:
-            print("Listing spark webhooks")
             async with client.get(url=self.WEBHOOK_URL) as resp:
                 result = await resp.json()
                 if resp.status == 200:
