@@ -7,9 +7,10 @@ from .common import CiscoSparkObject
 
 
 class Room(CiscoSparkObject):
-    def __init__(self, access_token, room_url, title, room_type, is_locked, team_id=None,
+    def __init__(self, access_token, room_id, room_url, title, room_type, is_locked, team_id=None,
                  loop=None):
         super().__init__(access_token, loop=loop)
+        self.room_id = room_id
         self.room_url = room_url
         self.title = title
         self.room_type = room_type
@@ -57,6 +58,7 @@ class Rooms(CiscoSparkObject):
                 if resp.status == 200:
                     return Room(
                         self._access_token,
+                        result["id"],
                         "{}/{}".format(self.ROOM_URL, result["id"]),
                         result["title"],
                         result["type"],
@@ -77,6 +79,7 @@ class Rooms(CiscoSparkObject):
                     for item in result.get("items", []):
                         rooms.append(Room(
                             self._access_token,
+                            item["id"],
                             "{}/{}".format(self.ROOM_URL, item["id"]),
                             item["title"],
                             item["type"],

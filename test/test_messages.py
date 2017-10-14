@@ -1,5 +1,5 @@
 import asyncio
-from aiociscospark import people, messages, common
+from aiociscospark import people, messages, common, rooms
 import os
 
 import pytest
@@ -40,3 +40,16 @@ async def test_create_message_failures():
         _ = await messages_api.send_to_person(message_markdown="boo")
     with pytest.raises(common.CiscoSparkAPIError):
         _ = await messages_api.send_to_person(person_email=me.person_id)
+
+
+@pytest.mark.asyncio
+async def test_create_message_for_room():
+    access_token = os.environ.get("TOKEN")
+    rooms_api = rooms.Rooms(access_token)
+    messages_api = messages.Messages(access_token)
+    room = await rooms_api.create("dummy for test")
+    sent_message = await messages_api.send_to_room(room_id=room.room_id, message_text="boo")
+    got_message = await messages_api.get(sent_message.message_id)
+    assert sent_message == got_message
+    result = await got_message.delete()
+    await room.delete()

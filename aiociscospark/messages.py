@@ -100,3 +100,23 @@ class Messages(CiscoSparkObject):
                     return self._message_from_result(result)
                 else:
                     raise CiscoSparkAPIError(result)
+
+    async def send_to_room(self, room_id, message_text=None, message_markdown=None):
+        if not message_text and not message_markdown:
+            raise CiscoSparkAPIError("Sending a message requires text or markdown")
+        data_to_post = {}
+        data_to_post["roomId"] = room_id
+        if message_text:
+            data_to_post["text"] = message_text
+        if message_markdown:
+            data_to_post["markdown"] = message_markdown
+        data_to_post = json.dumps(data_to_post)
+        async with aiohttp.ClientSession(
+                loop=self._loop,
+                headers=_headers(self._access_token)) as client:
+            async with client.post(url=self.MESSAGE_URL, data=data_to_post) as resp:
+                result = await resp.json()
+                if resp.status == 200:
+                    return self._message_from_result(result)
+                else:
+                    raise CiscoSparkAPIError(result)
