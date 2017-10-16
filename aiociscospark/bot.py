@@ -44,9 +44,7 @@ class CommandBot:
         command = args[0]
         try:
             func = getattr(self, command)
-            if callable(func) and getattr(func, '__summary'):
-                pass
-            else:
+            if not callable(func) or not hasattr(func, '__summary'):
                 return "I don't recognise that command"
             try:
                 options = docopt.docopt(func.__doc__, args[1:])
@@ -77,7 +75,6 @@ class CommandBot:
             message = await self.messages.get(data["data"]["id"])
             print("{} sent: {}".format(message.person_email, message.text))
             response = await self.run_command(message.text)
-            print(response)
             if message.room_type == "direct":
                 sent_message = await self.messages.send_to_person(
                     person_id=person_id, message_markdown=response)
@@ -88,7 +85,6 @@ class CommandBot:
                     message_markdown="<@personId:{}|{}> {}".format(
                         person_id, person.display_name, response)
                 )
-            print(sent_message)
         return web.Response(text=str(data))
 
     @botcommand
