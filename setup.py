@@ -19,6 +19,7 @@ setup(
     long_description=read('README.rst'),
     install_requires=[
         'aiohttp>=1.3.0',
+        'docopt'
     ],
     packages=['aiociscospark'],
     include_package_data=True,
